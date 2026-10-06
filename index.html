@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>デジタル化の実験ノート</title>
+<meta name="description" content="写真と音を使って、標本化・量子化・符号化を手で動かして体験できる実験ノート。">
+<meta property="og:title" content="デジタル化の実験ノート">
+<meta property="og:description" content="写真と音で、標本化・量子化・符号化を体験する。">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='9' width='3' height='6' fill='%233A6B4E'/%3E%3Crect x='6' y='5' width='3' height='10' fill='%233A6B4E'/%3E%3Crect x='11' y='2' width='3' height='13' fill='%23A35437'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Roboto+Mono:wght@400&display=swap">
+<style>
+:root{
+  --bg:#FFFFFF; --fg:#1B1C19; --muted:#6C6E67; --line:#E4E4DE; --fill:#F6F6F2;
+  --accent:#3A6B4E; --mark:#A35437;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#17181A; --fg:#E7E8E3; --muted:#95978F; --line:#2C2E2F; --fill:#1F2123;
+    --accent:#83BE9A; --mark:#DD9270;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#17181A; --fg:#E7E8E3; --muted:#95978F; --line:#2C2E2F; --fill:#1F2123;
+  --accent:#83BE9A; --mark:#DD9270;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+img{max-width:100%}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font-family:"Zen Kaku Gothic New",system-ui,-apple-system,sans-serif;
+  font-size:16px; line-height:1.8; font-feature-settings:"palt";
+}
+.wrap{max-width:800px; margin:0 auto; padding-block:56px 80px; padding-left:24px; padding-right:24px}
+h1{font-size:clamp(24px,4.2vw,31px); font-weight:700; line-height:1.5; margin:0 0 16px; text-wrap:balance}
+.lede{margin:0; color:var(--muted); max-width:60ch}
+h2{font-size:19px; font-weight:700; margin:0 0 4px}
+h2 + p{margin:0 0 26px; color:var(--muted); max-width:60ch; font-size:15px}
+section{margin-top:64px; padding-top:40px; border-top:1px solid var(--line)}
+
+.controls{display:grid; grid-template-columns:1fr 1fr; gap:20px 36px}
+.ctl label{display:flex; justify-content:space-between; align-items:baseline; gap:10px; font-size:14px; font-weight:500}
+.ctl .val{font-family:"Roboto Mono",monospace; font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums}
+.ctl .hint{font-size:12.5px; color:var(--muted); margin:3px 0 0; line-height:1.6}
+input[type=range]{width:100%; accent-color:var(--accent); margin:6px 0 0; display:block}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+.row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:18px}
+.row .lbl{font-size:12.5px; color:var(--muted); margin-right:2px}
+button{
+  font-family:inherit; font-size:13px; color:var(--fg); background:transparent;
+  border:1px solid var(--line); border-radius:2px; padding:5px 12px; cursor:pointer;
+}
+button:hover{border-color:var(--accent); color:var(--accent)}
+button.go{border-color:var(--accent); color:var(--accent)}
+.spec{font-family:"Roboto Mono",monospace; font-size:12.5px; color:var(--accent)}
+
+.pair{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:26px}
+figure{margin:0}
+figcaption{font-size:12px; color:var(--muted); margin-top:7px; font-family:"Roboto Mono",monospace; line-height:1.6}
+canvas{display:block; width:100%; border:1px solid var(--line); background:var(--fill)}
+#imgOut{image-rendering:pixelated}
+
+.stage{margin-top:28px}
+.stage > div{margin-top:18px}
+.stage h3{font-size:13px; font-weight:500; margin:0 0 6px; color:var(--muted)}
+.stage h3 b{color:var(--fg); font-weight:700; margin-right:7px}
+.bits{
+  font-family:"Roboto Mono",monospace; font-size:12.5px; letter-spacing:.05em; color:var(--mark);
+  border:1px solid var(--line); background:var(--fill); padding:11px 12px; word-break:break-all; line-height:1.9;
+}
+.bits em{color:var(--muted); font-style:normal}
+
+.figures{display:flex; flex-wrap:wrap; gap:0 40px; margin:26px 0 0; padding-top:20px; border-top:1px solid var(--line)}
+.figures dt{font-size:12.5px; color:var(--muted); margin:0}
+.figures dd{margin:1px 0 0; font-family:"Roboto Mono",monospace; font-size:18px; font-variant-numeric:tabular-nums}
+.foot{margin-top:64px; padding-top:20px; border-top:1px solid var(--line); font-size:12.5px; color:var(--muted)}
+@media(max-width:600px){ .wrap{padding-left:16px; padding-right:16px} .controls,.pair{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<main class="wrap">
+<h1>なめらかな世界を、とびとびの数字にする</h1>
+<p class="lede">なめらかな音や写真を、区切って、数字に丸めて、0と1に置き換える。これがデジタル化です。</p>
+
+<section>
+  <h2>写真で見る</h2>
+  <p>細かく区切る（標本化）と、色を丸める（量子化）。音でも同じ2つをやっています。</p>
+  <div class="controls">
+    <div class="ctl">
+      <label for="cells">横のマス数 <span class="val" id="cellsVal"></span></label>
+      <input type="range" id="cells" min="0" max="8" value="3" step="1">
+      <p class="hint">標本化。1マスにつき1回だけ色を測る</p>
+    </div>
+    <div class="ctl">
+      <label for="levels">色の段数 <span class="val" id="levelsVal"></span></label>
+      <input type="range" id="levels" min="0" max="7" value="2" step="1">
+      <p class="hint">量子化。測った色を、段に丸める</p>
+    </div>
+  </div>
+  <div class="row">
+    <span class="lbl">試す</span>
+    <button data-img="0,0">とても粗く</button>
+    <button data-img="3,2">粗く</button>
+    <button data-img="8,7">元のまま</button>
+  </div>
+  <div class="pair">
+    <figure><canvas id="imgSrc"></canvas><figcaption id="capSrc">もとの写真</figcaption></figure>
+    <figure><canvas id="imgOut"></canvas><figcaption id="capOut">デジタル化した写真</figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h2>音で聞く</h2>
+  <p>音は上下に揺れる波です。グラフは 20ミリ秒ぶんの拡大。</p>
+  <div class="controls">
+    <div class="ctl">
+      <label for="fs">標本化周波数 <span class="val" id="fsVal"></span></label>
+      <input type="range" id="fs" min="0" max="7" value="2" step="1">
+      <p class="hint">1秒間に何回、波の高さを測るか</p>
+    </div>
+    <div class="ctl">
+      <label for="bits">量子化ビット数 <span class="val" id="bitsVal"></span></label>
+      <input type="range" id="bits" min="1" max="16" value="3" step="1">
+      <p class="hint">測った高さを、何段階に丸めるか</p>
+    </div>
+  </div>
+  <div class="row">
+    <span class="lbl">規格にあわせる</span>
+    <button data-snd="7,16">音楽CD</button>
+    <button data-snd="4,8">電話</button>
+    <button data-snd="2,2">とても粗く</button>
+    <span class="spec" id="spec"></span>
+  </div>
+
+  <div class="stage">
+    <div>
+      <h3><b>① 標本化</b>一定間隔で高さを測る</h3>
+      <canvas id="c1"></canvas>
+    </div>
+    <div>
+      <h3><b>② 量子化</b>いちばん近い段に丸める</h3>
+      <canvas id="c2"></canvas>
+    </div>
+    <div>
+      <h3><b>③ 符号化</b>段の番号を2進数で並べる</h3>
+      <div class="bits" id="bitsOut"></div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:24px">
+    <button class="go" id="playDigital">デジタル化した音を聞く</button>
+    <button id="playOriginal">もとの音を聞く</button>
+  </div>
+
+  <dl class="figures">
+    <div><dt>1秒あたりのデータ量</dt><dd id="bps"></dd></div>
+    <div><dt>3分ぶん（モノラル）</dt><dd id="song"></dd></div>
+    <div><dt>CD音質・ステレオの3分</dt><dd>31.8 MB</dd></div>
+  </dl>
+</section>
+
+<p class="foot" id="foot" hidden></p>
+</main>
+
+<script>
+/* ------------------------------------------------------------------
+   素材ファイル。assets/ に photo.jpg と sound.wav を置けば、そのまま反映されます。
+   読み込めない場合は内蔵の代替（描画した風景・合成した声）を使います。
+------------------------------------------------------------------ */
+const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
+
+(function(){
+  const $ = id => document.getElementById(id);
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const DPR = () => Math.min(window.devicePixelRatio||1, 2);
+  function fit(cv, hCss){
+    const w = cv.getBoundingClientRect().width || 380, d = DPR();
+    cv.width = Math.round(w*d); cv.height = Math.round(hCss*d);
+    cv.style.height = hCss+'px';
+    const ctx = cv.getContext('2d', {willReadFrequently:true});
+    ctx.setTransform(d,0,0,d,0,0);
+    return {ctx, w, h:hCss, d};
+  }
+
+  /* ===================== 写真 ===================== */
+  const CELLS  = [8,16,24,32,48,64,96,160,0];
+  const LEVELS = [2,3,4,6,8,16,32,256];
+  const WORKW  = 1600;
+  const imgSrc = $('imgSrc'), imgOut = $('imgOut');
+  const work = document.createElement('canvas');
+  const tmp  = document.createElement('canvas');
+  let photo = null, WORK = null, tainted = false;
+
+  function fallbackScene(ctx,w,h){
+    const sky = ctx.createLinearGradient(0,0,0,h*.70);
+    sky.addColorStop(0,'#1C4A78'); sky.addColorStop(.55,'#7FA8C4'); sky.addColorStop(1,'#E8C496');
+    ctx.fillStyle=sky; ctx.fillRect(0,0,w,h);
+    const g=ctx.createRadialGradient(w*.72,h*.24,2,w*.72,h*.24,h*.42);
+    g.addColorStop(0,'#FFF6CD'); g.addColorStop(1,'rgba(255,246,205,0)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h*.70);
+    ctx.fillStyle='#FFF6CD'; ctx.beginPath(); ctx.arc(w*.72,h*.24,h*.075,0,7); ctx.fill();
+    ctx.fillStyle='#8496A0'; ctx.beginPath();
+    ctx.moveTo(-10,h*.70); ctx.lineTo(w*.20,h*.42); ctx.lineTo(w*.46,h*.70); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#385440'; ctx.beginPath();
+    ctx.moveTo(w*.34,h*.71); ctx.lineTo(w*.62,h*.235); ctx.lineTo(w*.99,h*.71); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#EEF3F6'; ctx.beginPath();
+    ctx.moveTo(w*.535,h*.375); ctx.lineTo(w*.62,h*.235); ctx.lineTo(w*.705,h*.375);
+    ctx.lineTo(w*.648,h*.335); ctx.lineTo(w*.593,h*.405); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#46644A'; ctx.beginPath();
+    ctx.moveTo(-40,h*.71); ctx.lineTo(w*.24,h*.395); ctx.lineTo(w*.50,h*.71); ctx.closePath(); ctx.fill();
+    const lake=ctx.createLinearGradient(0,h*.705,0,h);
+    lake.addColorStop(0,'#2C5C74'); lake.addColorStop(1,'#102A3A');
+    ctx.fillStyle=lake; ctx.fillRect(0,h*.705,w,h*.295);
+    ctx.fillStyle='rgba(250,235,170,.30)'; ctx.fillRect(w*.68,h*.71,w*.10,h*.29);
+    ctx.strokeStyle='rgba(255,255,255,.22)'; ctx.lineWidth=Math.max(1,h*.003);
+    for(let i=0;i<22;i++){ const yy=h*(.725+i*.0125);
+      ctx.beginPath(); ctx.moveTo(w*(.04+(i%3)*.035),yy); ctx.lineTo(w*(.24+(i%4)*.055),yy); ctx.stroke(); }
+    ctx.fillStyle='#964034'; ctx.beginPath();
+    ctx.moveTo(w*.085,h*.665); ctx.lineTo(w*.115,h*.60); ctx.lineTo(w*.145,h*.665); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#E9E0CE'; ctx.fillRect(w*.093,h*.665,w*.044,h*.048);
+    ctx.fillStyle='#5C6E76'; ctx.fillRect(w*.106,h*.678,w*.017,h*.022);
+  }
+
+  function buildWork(){
+    let w,h;
+    if(photo){
+      w = Math.min(photo.naturalWidth, WORKW);
+      h = Math.max(1, Math.round(w*photo.naturalHeight/photo.naturalWidth));
+    } else { w = WORKW; h = Math.round(w*0.66); }
+    work.width=w; work.height=h;
+    const c = work.getContext('2d',{willReadFrequently:true});
+    if(photo) c.drawImage(photo,0,0,w,h); else fallbackScene(c,w,h);
+    try { WORK = c.getImageData(0,0,w,h); }
+    catch(err){
+      if(tainted) return; tainted = true; photo = null; buildWork();
+    }
+  }
+
+  function renderImage(){
+    if(!WORK) return;
+    const w0 = imgSrc.getBoundingClientRect().width || 380;
+    const hCss = Math.round(w0*0.66);
+    const a = fit(imgSrc,hCss), b = fit(imgOut,hCss);
+
+    const sc = Math.max(a.w/work.width, a.h/work.height);
+    a.ctx.drawImage(work,(a.w-work.width*sc)/2,(a.h-work.height*sc)/2,work.width*sc,work.height*sc);
+
+    const rw = a.w/sc, rh = a.h/sc;
+    const ox = (work.width-rw)/2, oy = (work.height-rh)/2;
+
+    const cells = CELLS[+$('cells').value], lv = LEVELS[+$('levels').value];
+    const nx = cells || Math.round(a.w*a.d);
+    const ny = Math.max(1, Math.round(nx*a.h/a.w));
+    const step = lv-1, q = v => lv===256 ? v : Math.round(Math.round(v/255*step)/step*255);
+
+    const out = new ImageData(nx,ny), W = work.width;
+    for(let iy=0; iy<ny; iy++){
+      const wy = Math.min(work.height-1, Math.max(0, Math.round(oy+(iy+.5)/ny*rh)));
+      for(let ix=0; ix<nx; ix++){
+        const wx = Math.min(W-1, Math.max(0, Math.round(ox+(ix+.5)/nx*rw)));
+        const i = (wy*W+wx)*4, o = (iy*nx+ix)*4;
+        out.data[o]   = q(WORK.data[i]);
+        out.data[o+1] = q(WORK.data[i+1]);
+        out.data[o+2] = q(WORK.data[i+2]);
+        out.data[o+3] = 255;
+      }
+    }
+    tmp.width=nx; tmp.height=ny;
+    tmp.getContext('2d').putImageData(out,0,0);
+    b.ctx.imageSmoothingEnabled = false;
+    b.ctx.drawImage(tmp,0,0,b.w,b.h);
+
+    const real = photo ? photo.naturalWidth+'×'+photo.naturalHeight : work.width+'×'+work.height;
+    $('cellsVal').textContent  = cells ? '横 '+cells+' マス' : 'フル解像度';
+    $('levelsVal').textContent = lv===256 ? '各色 256 段' : '各色 '+lv+' 段 / '+Math.pow(lv,3).toLocaleString()+' 色';
+    $('capSrc').textContent = (photo ? 'もとの写真' : '内蔵の風景（代替）')+' ／ '+real+' 画素';
+    $('capOut').textContent = nx+'×'+ny+' マス ＝ '+(nx*ny).toLocaleString()+' 点';
+  }
+
+  /* ===================== 音 ===================== */
+  const FS = [500,1000,2000,4000,8000,11025,22050,44100];
+  const WIN = 0.02;
+  const c1 = $('c1'), c2 = $('c2');
+  let SRC = null, SRATE = 44100, winStart = 0, audioName = '内蔵の合成音（代替）';
+
+  function synth(){
+    const sr=44100, dur=2.2, n=Math.floor(sr*dur), out=new Float32Array(n);
+    let ph=0;
+    for(let i=0;i<n;i++){
+      const t=i/sr, m=Math.min(Math.max((t-1.0)/0.8,0),1);
+      const f0=138*(1-0.16*m)*(1+0.012*Math.sin(2*Math.PI*5.2*t));
+      ph += 2*Math.PI*f0/sr;
+      const F1=760*(1-m)+480*m, F2=1180*(1-m)+820*m;
+      let v=0;
+      for(let k=1;k<=28;k++){
+        const fk=f0*k;
+        let a=1/Math.pow(k,.9);
+        a += 1.0/Math.pow(k,.9)/(1+Math.pow((fk-F1)/110,2));
+        a += 0.62/Math.pow(k,.9)/(1+Math.pow((fk-F2)/120,2));
+        v += a*Math.sin(ph*k);
+      }
+      out[i]=v;
+    }
+    let mx=0; for(let i=0;i<n;i++) mx=Math.max(mx,Math.abs(out[i]));
+    if(!(mx>0)) mx=1;
+    for(let i=0;i<n;i++) out[i]=out[i]/mx*0.82*Math.min(1,i/sr/0.045,(dur-i/sr)/0.25);
+    return out;
+  }
+
+  function pickWindow(){
+    const step=Math.floor(SRATE*0.02); let best=0,bv=0;
+    for(let i=0;i+step<SRC.length;i+=step){
+      let s=0; for(let k=i;k<i+step;k+=8) s+=SRC[k]*SRC[k];
+      if(s>bv){bv=s;best=i;}
+    }
+    winStart = best/SRATE;
+  }
+  const at = t => {
+    const i = Math.round(t*SRATE);
+    return (i>=0 && i<SRC.length) ? SRC[i] : 0;
+  };
+  const state = () => ({fs:FS[+$('fs').value], bits:+$('bits').value});
+  const quantize = (v,bits) => {
+    const L=Math.pow(2,bits)-1;
+    const idx=Math.max(0,Math.min(L,Math.round((Math.max(-1,Math.min(1,v))+1)/2*L)));
+    return {idx, val: idx/L*2-1, L};
+  };
+  function frame(ctx,w,h){
+    ctx.fillStyle=css('--fill'); ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle=css('--line'); ctx.lineWidth=1;
+    for(let i=1;i<10;i++){const x=Math.round(w*i/10)+.5; ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke();}
+    const y=Math.round(h/2)+.5; ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+  }
+  const Y=(v,h)=>h/2 - Math.max(-1,Math.min(1,v))*(h/2-12);
+  function wave(ctx,w,h,alpha){
+    ctx.strokeStyle=css('--fg'); ctx.globalAlpha=alpha; ctx.lineWidth=1.5; ctx.beginPath();
+    for(let x=0;x<=w;x++){const v=at(winStart+x/w*WIN); x?ctx.lineTo(x,Y(v,h)):ctx.moveTo(x,Y(v,h));}
+    ctx.stroke(); ctx.globalAlpha=1;
+  }
+
+  function drawSampling(){
+    const {ctx,w,h}=fit(c1,150), {fs}=state();
+    frame(ctx,w,h); wave(ctx,w,h,1);
+    const n=Math.floor(WIN*fs), dense=n>110;
+    ctx.strokeStyle=ctx.fillStyle=css('--mark');
+    for(let i=0;i<=n;i++){
+      const t=i/fs; if(t>WIN) break;
+      const x=t/WIN*w, y=Y(at(winStart+t),h);
+      if(!dense){ ctx.globalAlpha=.4; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(x,h/2); ctx.lineTo(x,y); ctx.stroke(); ctx.globalAlpha=1; }
+      else ctx.globalAlpha=.45;
+      ctx.beginPath(); ctx.arc(x,y,dense?.9:2.6,0,7); ctx.fill(); ctx.globalAlpha=1;
+    }
+    if(dense) wave(ctx,w,h,1);
+    ctx.fillStyle=css('--muted'); ctx.font='11px "Roboto Mono", monospace';
+    ctx.fillText((n+1).toLocaleString()+' 点', 8, h-8);
+  }
+
+  function drawQuantize(){
+    const {ctx,w,h}=fit(c2,150), {fs,bits}=state();
+    frame(ctx,w,h);
+    const L=Math.pow(2,bits)-1;
+    if(L<=32){
+      ctx.strokeStyle=css('--line'); ctx.setLineDash([2,3]);
+      for(let k=0;k<=L;k++){const y=Math.round(Y(k/L*2-1,h))+.5;
+        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();}
+      ctx.setLineDash([]);
+    }
+    wave(ctx,w,h,.25);
+    const n=Math.floor(WIN*fs);
+    ctx.strokeStyle=css('--accent'); ctx.lineWidth=1.8; ctx.beginPath();
+    for(let i=0;i<=n;i++){
+      const t=i/fs; if(t>WIN) break;
+      const x=t/WIN*w, xe=Math.min(w,(t+1/fs)/WIN*w), y=Y(quantize(at(winStart+t),bits).val,h);
+      i?ctx.lineTo(x,y):ctx.moveTo(x,y); ctx.lineTo(xe,y);
+    }
+    ctx.stroke();
+    ctx.fillStyle=css('--muted'); ctx.font='11px "Roboto Mono", monospace';
+    ctx.fillText((L+1).toLocaleString()+' 段', 8, h-8);
+  }
+
+  function drawBits(){
+    const {fs,bits}=state();
+    const cap = bits>12?6 : bits>8?8 : bits>4?12 : 18;
+    const total=Math.floor(WIN*fs)+1, n=Math.min(total,cap), out=[];
+    for(let i=0;i<n;i++) out.push(quantize(at(winStart+i/fs),bits).idx.toString(2).padStart(bits,'0'));
+    $('bitsOut').innerHTML = out.join(' ') + (total>n ? ' <em>… 残り '+(total-n).toLocaleString()+' 個</em>' : '');
+  }
+
+  function figures(){
+    const {fs,bits}=state(), bps=fs*bits;
+    $('bps').textContent  = bps>=1e6 ? (bps/1e6).toFixed(2)+' Mbit' : (bps/1000).toFixed(1)+' kbit';
+    const mb=bps*180/8/1e6;
+    $('song').textContent = mb<1 ? (mb*1000).toFixed(0)+' KB' : mb.toFixed(1)+' MB';
+    $('fsVal').textContent   = fs.toLocaleString()+' Hz';
+    $('bitsVal').textContent = bits+' ビット / '+Math.pow(2,bits).toLocaleString()+' 段';
+    $('spec').textContent = (fs===44100&&bits===16) ? '＝ 音楽CDと同じ'
+                          : (fs===8000&&bits===8)   ? '＝ 電話とほぼ同じ' : '';
+  }
+  const renderSound = () => { if(!SRC) return; drawSampling(); drawQuantize(); drawBits(); figures(); };
+
+  /* ---- 再生 ---- */
+  let ac=null;
+  const ctxAudio = () => ac || (ac = new (window.AudioContext||window.webkitAudioContext)());
+  function play(digital){
+    if(!SRC) return;
+    const a=ctxAudio(); if(a.state==='suspended') a.resume();
+    const {fs,bits}=state(), n=SRC.length;
+    const buf=a.createBuffer(1,n,SRATE), d=buf.getChannelData(0);
+    if(digital){
+      for(let i=0;i<n;i++){
+        const ts=Math.floor(i/SRATE*fs)/fs;
+        d[i]=quantize(SRC[Math.min(n-1,Math.round(ts*SRATE))],bits).val*0.7;
+      }
+    } else d.set(SRC);
+    const s=a.createBufferSource(); s.buffer=buf; s.connect(a.destination); s.start();
+  }
+
+  /* ---- 素材の読み込み ---- */
+  function loadImage(){
+    return new Promise(res=>{
+      const im=new Image(); im.crossOrigin='anonymous';
+      im.onload=()=>{ photo=im; buildWork(); res(); };
+      im.onerror=()=>res();
+      im.src=ASSETS.image;
+    });
+  }
+  async function loadAudio(){
+    try{
+      const r=await fetch(ASSETS.audio); if(!r.ok) throw 0;
+      const b=await ctxAudio().decodeAudioData(await r.arrayBuffer());
+      SRC=b.getChannelData(0); SRATE=b.sampleRate; audioName='もとの音';
+    }catch(e){ SRC=synth(); SRATE=44100; }
+    pickWindow();
+  }
+
+  /* ---- 配線 ---- */
+  ['cells','levels'].forEach(id=>$(id).addEventListener('input',renderImage));
+  ['fs','bits'].forEach(id=>$(id).addEventListener('input',renderSound));
+  document.querySelectorAll('[data-img]').forEach(b=>b.addEventListener('click',()=>{
+    const [c,l]=b.dataset.img.split(','); $('cells').value=c; $('levels').value=l; renderImage();
+  }));
+  document.querySelectorAll('[data-snd]').forEach(b=>b.addEventListener('click',()=>{
+    const [f,bi]=b.dataset.snd.split(','); $('fs').value=f; $('bits').value=bi; renderSound();
+  }));
+  $('playDigital').addEventListener('click',()=>play(true));
+  $('playOriginal').addEventListener('click',()=>play(false));
+  let rt; window.addEventListener('resize',()=>{clearTimeout(rt); rt=setTimeout(()=>{renderImage(); renderSound();},150);});
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',renderSound);
+  new MutationObserver(renderSound).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+  buildWork(); renderImage();
+  loadImage().then(renderImage);
+  loadAudio().then(()=>{
+    renderSound();
+    if(audioName!=='もとの音'){
+      $('foot').textContent = 'assets/sound.wav が無いため、内蔵の合成音を鳴らしています。';
+      $('foot').hidden = false;
+    }
+  });
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{renderImage(); renderSound();});
+})();
+</script>
+</body>
+</html>
