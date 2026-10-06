@@ -57,6 +57,7 @@ button{
   border:1px solid var(--line); border-radius:2px; padding:5px 12px; cursor:pointer;
 }
 button:hover{border-color:var(--accent); color:var(--accent)}
+button:disabled{color:var(--muted); border-color:var(--line); cursor:default; opacity:.6}
 button.go{border-color:var(--accent); color:var(--accent)}
 .spec{font-family:"Roboto Mono",monospace; font-size:12.5px; color:var(--accent)}
 
@@ -163,6 +164,7 @@ canvas{display:block; width:100%; border:1px solid var(--line); background:var(-
   <div class="row" style="margin-top:24px">
     <button class="go" id="playDigital">デジタル化した音を聞く</button>
     <button id="playOriginal">もとの音を聞く</button>
+    <button id="stopAudio" disabled>停止</button>
   </div>
 
   <dl class="figures">
@@ -449,10 +451,16 @@ const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
   const renderSound = () => { if(!SRC) return; drawSampling(); drawQuantize(); drawBits(); figures(); };
 
   /* ---- 再生 ---- */
-  let ac=null;
+  let ac=null, playing=null;
   const ctxAudio = () => ac || (ac = new (window.AudioContext||window.webkitAudioContext)());
+  function stop(){
+    if(!playing) return;
+    try{ playing.stop(); }catch(e){}
+    playing=null; $('stopAudio').disabled=true;
+  }
   function play(digital){
     if(!SRC) return;
+    stop();
     const a=ctxAudio(); if(a.state==='suspended') a.resume();
     const {fs,bits}=state(), n=SRC.length;
     const buf=a.createBuffer(1,n,SRATE), d=buf.getChannelData(0);
@@ -462,7 +470,9 @@ const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
         d[i]=quantize(SRC[Math.min(n-1,Math.round(ts*SRATE))],bits).val*0.7;
       }
     } else d.set(SRC);
-    const s=a.createBufferSource(); s.buffer=buf; s.connect(a.destination); s.start();
+    const s=a.createBufferSource(); s.buffer=buf; s.connect(a.destination);
+    s.onended=()=>{ if(playing===s){ playing=null; $('stopAudio').disabled=true; } };
+    s.start(); playing=s; $('stopAudio').disabled=false;
   }
 
   /* ---- 素材の読み込み ---- */
@@ -494,6 +504,7 @@ const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
   }));
   $('playDigital').addEventListener('click',()=>play(true));
   $('playOriginal').addEventListener('click',()=>play(false));
+  $('stopAudio').addEventListener('click',stop);
   let rt; window.addEventListener('resize',()=>{clearTimeout(rt); rt=setTimeout(()=>{renderImage(); renderSound();},150);});
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change',renderSound);
   new MutationObserver(renderSound).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
