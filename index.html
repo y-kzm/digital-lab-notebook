@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>デジタル化の実験ノート</title>
-<meta name="description" content="写真と音を使って、標本化・量子化・符号化を手で動かして体験できる実験ノート。">
+<meta name="description" content="画像の画素・解像度と、音の標本化・量子化・符号化を、スライダーで動かして体験できる実験ノート。">
 <meta property="og:title" content="デジタル化の実験ノート">
 <meta property="og:description" content="写真と音で、標本化・量子化・符号化を体験する。">
 <meta property="og:type" content="website">
@@ -86,21 +86,21 @@ canvas{display:block; width:100%; border:1px solid var(--line); background:var(-
 <body>
 <main class="wrap">
 <h1>なめらかな世界を、とびとびの数字にする</h1>
-<p class="lede">なめらかな音や写真を、区切って、数字に丸めて、0と1に置き換える。これがデジタル化です。</p>
+<p class="lede">なめらかに変化する光や音（アナログ）を、区切って測り、決められた段階の整数に丸め、0と1の列にする。これがデジタル化です。</p>
 
 <section>
-  <h2>写真で見る</h2>
-  <p>細かく区切る（標本化）と、色を丸める（量子化）。音でも同じ2つをやっています。</p>
+  <h2>画像で見る：画素と解像度</h2>
+  <p>デジタル画像は、小さな色の点 ＝ 画素（ピクセル）の集まりです。画素の数（解像度）と、1画素の色の細かさ（RGB各色の段階）を変えて、見え方とデータ量を比べます。</p>
   <div class="controls">
     <div class="ctl">
-      <label for="cells">横のマス数 <span class="val" id="cellsVal"></span></label>
+      <label for="cells">解像度（横の画素数） <span class="val" id="cellsVal"></span></label>
       <input type="range" id="cells" min="0" max="8" value="3" step="1">
-      <p class="hint">標本化。1マスにつき1回だけ色を測る</p>
+      <p class="hint">縦横に何個の画素が並んでいるか。少ないと、拡大したときにギザギザになる</p>
     </div>
     <div class="ctl">
-      <label for="levels">色の段数 <span class="val" id="levelsVal"></span></label>
+      <label for="levels">色の段階 <span class="val" id="levelsVal"></span></label>
       <input type="range" id="levels" min="0" max="7" value="2" step="1">
-      <p class="hint">量子化。測った色を、段に丸める</p>
+      <p class="hint">1画素の色を、赤・緑・青それぞれ 0〜255（1バイト）の整数で表す。段階を減らすと色がとびとびになる</p>
     </div>
   </div>
   <div class="row">
@@ -113,42 +113,49 @@ canvas{display:block; width:100%; border:1px solid var(--line); background:var(-
     <figure><canvas id="imgSrc"></canvas><figcaption id="capSrc">もとの写真</figcaption></figure>
     <figure><canvas id="imgOut"></canvas><figcaption id="capOut">デジタル化した写真</figcaption></figure>
   </div>
+  <dl class="figures">
+    <div><dt>画素数（横 × 縦）</dt><dd id="imgPx"></dd></div>
+    <div><dt>表せる色の数</dt><dd id="imgColors"></dd></div>
+    <div><dt>1画素あたり（RGB 3色）</dt><dd id="imgBpp"></dd></div>
+    <div><dt>データ量（圧縮なし）</dt><dd id="imgSize"></dd></div>
+    <div><dt>参考：フルHD 1920×1080×3バイト</dt><dd>約 6.2 MB</dd></div>
+  </dl>
 </section>
 
 <section>
-  <h2>音で聞く</h2>
-  <p>音は上下に揺れる波です。グラフは 20ミリ秒ぶんの拡大。</p>
+  <h2>音で聞く：標本化・量子化・符号化</h2>
+  <p>音は空気の振動 ＝ なめらかに変化する波（アナログ）です。3つのステップで 0 と 1 の列にします。グラフは 20ミリ秒ぶんの拡大。</p>
   <div class="controls">
     <div class="ctl">
-      <label for="fs">標本化周波数 <span class="val" id="fsVal"></span></label>
+      <label for="fs">サンプリング周波数 <span class="val" id="fsVal"></span></label>
       <input type="range" id="fs" min="0" max="7" value="2" step="1">
-      <p class="hint">1秒間に何回、波の高さを測るか</p>
+      <p class="hint">標本化：一定時間ごとに波の高さを測る。1秒間に測る回数（Hz）</p>
     </div>
     <div class="ctl">
       <label for="bits">量子化ビット数 <span class="val" id="bitsVal"></span></label>
       <input type="range" id="bits" min="1" max="16" value="3" step="1">
-      <p class="hint">測った高さを、何段階に丸めるか</p>
+      <p class="hint">量子化：測った値を、決められた段階の整数に丸める。段階の数 ＝ 2のビット数乗</p>
     </div>
   </div>
   <div class="row">
     <span class="lbl">規格にあわせる</span>
-    <button data-snd="7,16">音楽CD</button>
-    <button data-snd="4,8">電話</button>
+    <button data-snd="7,16">音楽CD（44.1 kHz・16ビット）</button>
+    <button data-snd="4,8">電話（8 kHz・8ビット）</button>
     <button data-snd="2,2">とても粗く</button>
     <span class="spec" id="spec"></span>
   </div>
 
   <div class="stage">
     <div>
-      <h3><b>① 標本化</b>一定間隔で高さを測る</h3>
+      <h3><b>① 標本化</b>一定時間ごとに波の高さを測る</h3>
       <canvas id="c1"></canvas>
     </div>
     <div>
-      <h3><b>② 量子化</b>いちばん近い段に丸める</h3>
+      <h3><b>② 量子化</b>測った値を、決められた段階の整数に丸める</h3>
       <canvas id="c2"></canvas>
     </div>
     <div>
-      <h3><b>③ 符号化</b>段の番号を2進数で並べる</h3>
+      <h3><b>③ 符号化</b>整数を 0 と 1 の列にする</h3>
       <div class="bits" id="bitsOut"></div>
     </div>
   </div>
@@ -159,9 +166,9 @@ canvas{display:block; width:100%; border:1px solid var(--line); background:var(-
   </div>
 
   <dl class="figures">
-    <div><dt>1秒あたりのデータ量</dt><dd id="bps"></dd></div>
+    <div><dt>1秒あたりのデータ量（周波数 × ビット数）</dt><dd id="bps"></dd></div>
     <div><dt>3分ぶん（モノラル）</dt><dd id="song"></dd></div>
-    <div><dt>CD音質・ステレオの3分</dt><dd>31.8 MB</dd></div>
+    <div><dt>参考：音楽CD（ステレオ）の3分</dt><dd>31.8 MB</dd></div>
   </dl>
 </section>
 
@@ -188,9 +195,28 @@ const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
     return {ctx, w, h:hCss, d};
   }
 
+  // 大きな縮小を一発で行うとエイリアシングが出るので、半分ずつ段階的に縮める
+  const shrink = document.createElement('canvas');
+  function drawDown(ctx, src, dx, dy, dw, dh){
+    const d = DPR();
+    let sw = src.width, sh = src.height, cur = src;
+    const tw = dw*d, th = dh*d;
+    while(sw/2 >= tw && sh/2 >= th){
+      const nw = Math.round(sw/2), nh = Math.round(sh/2);
+      const dst = (cur===shrink) ? document.createElement('canvas') : shrink;
+      dst.width = nw; dst.height = nh;
+      const c = dst.getContext('2d');
+      c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
+      c.drawImage(cur, 0,0,sw,sh, 0,0,nw,nh);
+      cur = dst; sw = nw; sh = nh;
+    }
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(cur, 0,0,sw,sh, dx,dy,dw,dh);
+  }
+
   /* ===================== 写真 ===================== */
   const CELLS  = [8,16,24,32,48,64,96,160,0];
-  const LEVELS = [2,3,4,6,8,16,32,256];
+  const LEVELS = [2,4,8,16,32,64,128,256];   // 各色のビット数 1〜8
   const WORKW  = 1600;
   const imgSrc = $('imgSrc'), imgOut = $('imgOut');
   const work = document.createElement('canvas');
@@ -242,6 +268,10 @@ const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
     }
   }
 
+  const colorCount = b => { const c = Math.pow(2,3*b);
+    return c>=1e6 ? '約 '+Math.floor(c/1e4).toLocaleString()+' 万色' : c.toLocaleString()+' 色'; };
+  const fmtBytes = n => n>=1e6 ? (n/1e6).toFixed(1)+' MB' : n>=1e3 ? (n/1e3).toFixed(0)+' KB' : Math.round(n)+' B';
+
   function renderImage(){
     if(!WORK) return;
     const w0 = imgSrc.getBoundingClientRect().width || 380;
@@ -249,14 +279,15 @@ const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
     const a = fit(imgSrc,hCss), b = fit(imgOut,hCss);
 
     const sc = Math.max(a.w/work.width, a.h/work.height);
-    a.ctx.drawImage(work,(a.w-work.width*sc)/2,(a.h-work.height*sc)/2,work.width*sc,work.height*sc);
-
-    const rw = a.w/sc, rh = a.h/sc;
-    const ox = (work.width-rw)/2, oy = (work.height-rh)/2;
+    drawDown(a.ctx, work,(a.w-work.width*sc)/2,(a.h-work.height*sc)/2,work.width*sc,work.height*sc);
 
     const cells = CELLS[+$('cells').value], lv = LEVELS[+$('levels').value];
-    const nx = cells || Math.round(a.w*a.d);
-    const ny = Math.max(1, Math.round(nx*a.h/a.w));
+    const bitsPer = Math.round(Math.log2(lv));
+    // 元の解像度では作業画像の画素をそのまま使う（表示画素数で点抽出すると荒れる）
+    const rw = cells ? a.w/sc : work.width, rh = cells ? a.h/sc : work.height;
+    const ox = (work.width-rw)/2, oy = (work.height-rh)/2;
+    const nx = cells || work.width;
+    const ny = cells ? Math.max(1, Math.round(nx*a.h/a.w)) : work.height;
     const step = lv-1, q = v => lv===256 ? v : Math.round(Math.round(v/255*step)/step*255);
 
     const out = new ImageData(nx,ny), W = work.width;
@@ -273,14 +304,25 @@ const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
     }
     tmp.width=nx; tmp.height=ny;
     tmp.getContext('2d').putImageData(out,0,0);
-    b.ctx.imageSmoothingEnabled = false;
-    b.ctx.drawImage(tmp,0,0,b.w,b.h);
+    if(cells){
+      b.ctx.imageSmoothingEnabled = false;
+      b.ctx.drawImage(tmp,0,0,b.w,b.h);
+      imgOut.style.imageRendering = 'pixelated';
+    } else {
+      drawDown(b.ctx, tmp, 0,0,b.w,b.h);
+      imgOut.style.imageRendering = 'auto';
+    }
 
     const real = photo ? photo.naturalWidth+'×'+photo.naturalHeight : work.width+'×'+work.height;
-    $('cellsVal').textContent  = cells ? '横 '+cells+' マス' : 'フル解像度';
-    $('levelsVal').textContent = lv===256 ? '各色 256 段' : '各色 '+lv+' 段 / '+Math.pow(lv,3).toLocaleString()+' 色';
+    $('cellsVal').textContent  = cells ? '横 '+cells+' 画素' : '元の解像度';
+    $('levelsVal').textContent = '各色 '+lv+' 段階 / '+bitsPer+' ビット';
     $('capSrc').textContent = (photo ? 'もとの写真' : '内蔵の風景（代替）')+' ／ '+real+' 画素';
-    $('capOut').textContent = nx+'×'+ny+' マス ＝ '+(nx*ny).toLocaleString()+' 点';
+    $('capOut').textContent = nx+'×'+ny+' 画素 ／ 各色 '+bitsPer+' ビット';
+    const px = nx*ny, bytes = px*3*bitsPer/8;
+    $('imgPx').textContent   = nx+' × '+ny+' ＝ '+px.toLocaleString()+' 画素';
+    $('imgColors').textContent = colorCount(bitsPer);
+    $('imgBpp').textContent  = (3*bitsPer)+' ビット'+(bitsPer===8 ? '（3 バイト）' : '');
+    $('imgSize').textContent = fmtBytes(bytes);
   }
 
   /* ===================== 音 ===================== */
@@ -359,7 +401,7 @@ const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
     }
     if(dense) wave(ctx,w,h,1);
     ctx.fillStyle=css('--muted'); ctx.font='11px "Roboto Mono", monospace';
-    ctx.fillText((n+1).toLocaleString()+' 点', 8, h-8);
+    ctx.fillText((n+1).toLocaleString()+' サンプル', 8, h-8);
   }
 
   function drawQuantize(){
@@ -382,7 +424,7 @@ const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
     }
     ctx.stroke();
     ctx.fillStyle=css('--muted'); ctx.font='11px "Roboto Mono", monospace';
-    ctx.fillText((L+1).toLocaleString()+' 段', 8, h-8);
+    ctx.fillText((L+1).toLocaleString()+' 段階', 8, h-8);
   }
 
   function drawBits(){
@@ -390,7 +432,7 @@ const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
     const cap = bits>12?6 : bits>8?8 : bits>4?12 : 18;
     const total=Math.floor(WIN*fs)+1, n=Math.min(total,cap), out=[];
     for(let i=0;i<n;i++) out.push(quantize(at(winStart+i/fs),bits).idx.toString(2).padStart(bits,'0'));
-    $('bitsOut').innerHTML = out.join(' ') + (total>n ? ' <em>… 残り '+(total-n).toLocaleString()+' 個</em>' : '');
+    $('bitsOut').innerHTML = out.join(' ') + (total>n ? ' <em>… 残り '+(total-n).toLocaleString()+' サンプル</em>' : '');
   }
 
   function figures(){
@@ -398,10 +440,10 @@ const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
     $('bps').textContent  = bps>=1e6 ? (bps/1e6).toFixed(2)+' Mbit' : (bps/1000).toFixed(1)+' kbit';
     const mb=bps*180/8/1e6;
     $('song').textContent = mb<1 ? (mb*1000).toFixed(0)+' KB' : mb.toFixed(1)+' MB';
-    $('fsVal').textContent   = fs.toLocaleString()+' Hz';
-    $('bitsVal').textContent = bits+' ビット / '+Math.pow(2,bits).toLocaleString()+' 段';
+    $('fsVal').textContent   = fs>=1000 ? (fs/1000).toLocaleString()+' kHz' : fs.toLocaleString()+' Hz';
+    $('bitsVal').textContent = bits+' ビット / '+Math.pow(2,bits).toLocaleString()+' 段階';
     $('spec').textContent = (fs===44100&&bits===16) ? '＝ 音楽CDと同じ'
-                          : (fs===8000&&bits===8)   ? '＝ 電話とほぼ同じ' : '';
+                          : (fs===8000&&bits===8)   ? '＝ 電話と同じ' : '';
   }
   const renderSound = () => { if(!SRC) return; drawSampling(); drawQuantize(); drawBits(); figures(); };
 
