@@ -215,7 +215,7 @@ const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
   }
 
   /* ===================== 写真 ===================== */
-  const CELLS  = [8,16,24,32,48,64,96,160,0];
+  const CELLS  = [8,16,32,64,128,256,400,800,0];   // 横の画素数。0 ＝ 元の解像度
   const LEVELS = [2,4,8,16,32,64,128,256];   // 各色のビット数 1〜8
   const WORKW  = 1600;
   const imgSrc = $('imgSrc'), imgOut = $('imgOut');
@@ -304,7 +304,8 @@ const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
     }
     tmp.width=nx; tmp.height=ny;
     tmp.getContext('2d').putImageData(out,0,0);
-    if(cells){
+    // 画素が表示より粗いときだけ最近傍で拡大。表示より細かいときは段階縮小（ジャギー防止）
+    if(cells && nx <= b.w*b.d){
       b.ctx.imageSmoothingEnabled = false;
       b.ctx.drawImage(tmp,0,0,b.w,b.h);
       imgOut.style.imageRendering = 'pixelated';
