@@ -392,17 +392,17 @@ const ASSETS = { image: 'assets/photo.jpg', audio: 'assets/sound.wav' };
   function drawSampling(){
     const {ctx,w,h}=fit(c1,150), {fs}=state();
     frame(ctx,w,h); wave(ctx,w,h,1);
-    const n=Math.floor(WIN*fs), dense=n>110;
+    // 点は常に波の上に赤で描く。間隔が狭いほど点を小さくし、詰まると赤い線に見える
+    const n=Math.floor(WIN*fs), gap=w/n;
+    const r=Math.max(1.0, Math.min(2.6, gap*0.3)), stems=gap>=6;
     ctx.strokeStyle=ctx.fillStyle=css('--mark');
     for(let i=0;i<=n;i++){
       const t=i/fs; if(t>WIN) break;
       const x=t/WIN*w, y=Y(at(winStart+t),h);
-      if(!dense){ ctx.globalAlpha=.4; ctx.lineWidth=1;
+      if(stems){ ctx.globalAlpha=.4; ctx.lineWidth=1;
         ctx.beginPath(); ctx.moveTo(x,h/2); ctx.lineTo(x,y); ctx.stroke(); ctx.globalAlpha=1; }
-      else ctx.globalAlpha=.45;
-      ctx.beginPath(); ctx.arc(x,y,dense?.9:2.6,0,7); ctx.fill(); ctx.globalAlpha=1;
+      ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fill();
     }
-    if(dense) wave(ctx,w,h,1);
     ctx.fillStyle=css('--muted'); ctx.font='11px "Roboto Mono", monospace';
     ctx.fillText((n+1).toLocaleString()+' サンプル', 8, h-8);
   }
